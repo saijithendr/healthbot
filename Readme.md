@@ -89,3 +89,8 @@ python HealthBot.py
 * See your grade & feedback.
 
 * Choose to learn another topic or exit
+
+# License
+This project is released under the MIT License.
+Feel free to use and adapt for your own patient-education solutions!
+
