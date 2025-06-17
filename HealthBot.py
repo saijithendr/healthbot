@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv #type: ignore
 from typing_extensions import TypedDict #type: ignore
 from tavily import TavilyClient #type: ignore
-from langchain import OpenAI #type: ignore
+from langchain_community.chat_models import ChatOpenAI  # type: ignore
 from langgraph.graph import StateGraph, START, END  #type: ignore
 
 # API Keys
@@ -11,7 +11,7 @@ assert os.getenv("OPENAI_API_KEY")
 assert os.getenv("TAVILY_API_KEY")
 
 tavily = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
-llm    = OpenAI(temperature=0.7, model_name="gpt-4")
+llm    = ChatOpenAI(temperature=0.7, model_name="gpt-4")
 
 # State
 class HealthBotState(TypedDict):
