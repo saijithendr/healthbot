@@ -1,9 +1,23 @@
+# %%
+!pip install --quiet -U langchain==0.2.16
+!pip install --quiet -U langchain_openai==0.1.23
+!pip install --quiet -U langgraph==0.2.19
+!pip install --quiet -U langchainhub==0.1.21
+!pip install --quiet -U tavily-python==0.4.0
+!pip install --quiet -U langchain-community==0.2.16
+!pip install --quiet -U python-dotenv==1.0.1
+
+# %%
 import os
 from dotenv import load_dotenv #type: ignore
 from typing_extensions import TypedDict #type: ignore
 from tavily import TavilyClient #type: ignore
 from langchain_community.chat_models import ChatOpenAI  # type: ignore
 from langgraph.graph import StateGraph, START, END  #type: ignore
+from langchain.schema import HumanMessage
+
+
+# %%
 
 # API Keys
 load_dotenv(".env")
@@ -12,6 +26,9 @@ assert os.getenv("TAVILY_API_KEY")
 
 tavily = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
 llm    = ChatOpenAI(temperature=0.7, model_name="gpt-4")
+
+
+# %%
 
 # State
 class HealthBotState(TypedDict):
@@ -25,6 +42,9 @@ class HealthBotState(TypedDict):
     feedback: str
     restart: bool
 
+
+
+# %%
 
 def ask_topic(state: HealthBotState) -> HealthBotState:
     state["topic"] = input("What health topic would you like to learn about? ")
@@ -50,7 +70,10 @@ def summarize_info(state: HealthBotState) -> HealthBotState:
         " patient-friendly explanation, using only this text:\n\n"
         + state["search_results"]
     )
-    state["summary"] = llm(prompt)
+    messages = [HumanMessage(content=prompt)]
+    response = llm(messages)     
+    state["summary"] = response.content
+    
     return state
 
 def display_summary(state: HealthBotState) -> HealthBotState:
@@ -95,6 +118,9 @@ def ask_restart(state: HealthBotState) -> HealthBotState:
     state["restart"] = input("Learn another topic? (yes/no) ").lower().startswith("y")
     return state
 
+
+# %%
+
 builder = StateGraph(state_schema=HealthBotState)
 
 builder.add_node("ask_topic",           ask_topic)
@@ -123,22 +149,33 @@ builder.add_edge("ask_restart",    END)
 app = builder.compile()
 
 
-if __name__ == "__main__":
-    while True:
 
-        state: HealthBotState = {
-            "topic": "",
-            "search_results": "",
-            "summary": "",
-            "ready_for_quiz": False,
-            "quiz_question": "",
-            "user_answer": "",
-            "grade": "",
-            "feedback": "",
-            "restart": False,
-        }
-        final_state = app.invoke(state)
-        if not final_state["restart"]:
-            print("\nGood Job, Happy Learning!")
-            break
-        print("\n Starting over with a fresh topic…\n")
+# %%
+
+while True:
+
+    state: HealthBotState = {
+        "topic": "",
+        "search_results": "",
+        "summary": "",
+        "ready_for_quiz": False,
+        "quiz_question": "",
+        "user_answer": "",
+        "grade": "",
+        "feedback": "",
+        "restart": False,
+    }
+    final_state = app.invoke(state)
+    if not final_state["restart"]:
+        print("\nGood Job, Happy Learning!")
+        break
+    print("\n Starting over with a fresh topic…\n")
+
+
+# %%
+
+
+# %%
+
+
+
